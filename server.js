@@ -21,52 +21,26 @@ app.use(express.static('public'));
 /**
  * Execute License Wizard command and return result
  */
-async function runCommand(args) {
-  return new Promise(async (resolve, reject) => {
-    // Create temp file for output
-    const tempFile = path.join(os.tmpdir(), `license_wizard_${Date.now()}.txt`);
-
-    // Build command with output redirection
-    const cmdLine = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')} > "${tempFile}" 2>&1`;
-
-    console.log('Executing command:', cmdLine);
-    console.log('Output file:', tempFile);
+function runCommand(args) {
+  return new Promise((resolve, reject) => {
+    const cmdLine = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')}`;
 
     exec(cmdLine, {
       encoding: 'utf8',
       maxBuffer: 10 * 1024 * 1024,
-      timeout: 30000,
-      windowsHide: false
-    }, async (error, stdout, stderr) => {
-      console.log('Command completed');
-      console.log('Error:', error);
-
-      try {
-        // Read the output from the temp file
-        const output = await fs.readFile(tempFile, 'utf8');
-        console.log('File output length:', output.length);
-        console.log('File output sample (first 200 chars):', output.substring(0, 200));
-
-        // Clean up temp file
-        await fs.unlink(tempFile).catch(() => {});
-
-        resolve({
-          success: !error || error.code === 0,
-          returncode: error ? error.code : 0,
-          stdout: output,
-          stderr: stderr || ''
-        });
-      } catch (readError) {
-        console.log('Error reading temp file:', readError);
-
-        // Fallback to original stdout/stderr
-        resolve({
-          success: !error || error.code === 0,
-          returncode: error ? error.code : 0,
-          stdout: stdout || '',
-          stderr: stderr || ''
-        });
+      timeout: 30000
+    }, (error, stdout, stderr) => {
+      if (error && error.killed) {
+        reject({ status: 408, message: 'Command timeout' });
+        return;
       }
+
+      resolve({
+        success: !error || error.code === 0,
+        returncode: error ? error.code : 0,
+        stdout: stdout || '',
+        stderr: stderr || ''
+      });
     });
   });
 }
