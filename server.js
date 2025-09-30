@@ -24,10 +24,12 @@ app.use(express.static('public'));
 function runCommand(args) {
   return new Promise((resolve, reject) => {
     console.log('Executing command:', LICENSE_WIZARD_PATH, ['--console', ...args]);
+    console.log('File exists check - Path:', LICENSE_WIZARD_PATH);
 
     const child = spawn(LICENSE_WIZARD_PATH, ['--console', ...args], {
       encoding: 'utf8',
-      windowsHide: false
+      windowsHide: false,
+      shell: true
     });
 
     let stdout = '';
