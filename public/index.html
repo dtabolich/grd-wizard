@@ -330,6 +330,7 @@
 
             let message = success ? '✓ Success' : '✗ Error';
             let output = '';
+            let extraInfo = '';
 
             if (typeof data === 'object') {
                 // Debug: log the data to console
@@ -344,6 +345,14 @@
                 } else {
                     output = 'Command executed successfully (no output)';
                 }
+
+                // Add license file path info if available
+                if (data.licenseFilePath) {
+                    extraInfo = `<div style="margin-top: 10px; padding: 10px; background: rgba(37, 99, 235, 0.1); border-radius: 5px;">
+                        <strong>Generated License File:</strong><br>
+                        <code style="color: #2563eb;">${data.licenseFilePath}</code>
+                    </div>`;
+                }
             } else {
                 output = data;
             }
@@ -354,7 +363,7 @@
                 .replace(/</g, '&lt;')
                 .replace(/>/g, '&gt;');
 
-            element.innerHTML = `<strong>${message}</strong><pre>${escapedOutput}</pre>`;
+            element.innerHTML = `<strong>${message}</strong>${extraInfo}<pre>${escapedOutput}</pre>`;
         }
 
         async function listLicenses() {

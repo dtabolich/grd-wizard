@@ -154,9 +154,6 @@ app.post('/licenses/activate-response', upload.single('request_file'), async (re
     const licenseFileName = originalName.replace(/\.request$/i, '.license');
     const licenseFilePath = path.join(path.dirname(requestFilePath), licenseFileName);
 
-    console.log('Request file:', requestFilePath);
-    console.log('Generated license file path:', licenseFilePath);
-
     const result = await runCommand([
       '--activate-response',
       serial_number,
@@ -167,7 +164,12 @@ app.post('/licenses/activate-response', upload.single('request_file'), async (re
     // Cleanup uploaded file
     await fs.unlink(requestFilePath).catch(() => {});
 
-    res.json(result);
+    // Add license file path to response
+    res.json({
+      ...result,
+      licenseFilePath: licenseFilePath,
+      licenseFileName: licenseFileName
+    });
   } catch (error) {
     if (req.file) {
       await fs.unlink(req.file.path).catch(() => {});
