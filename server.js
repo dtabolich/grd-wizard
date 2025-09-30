@@ -76,13 +76,23 @@ app.post('/licenses/activate-request/:licenseId', async (req, res) => {
     const { licenseId } = req.params;
     const { host } = req.body;
 
-    const args = ['--activate-request', licenseId];
+    // Generate request file path
+    const requestFileName = `${licenseId}_activation.request`;
+    const requestFilePath = path.resolve(os.tmpdir(), requestFileName);
+
+    const args = ['--activate-request', licenseId, requestFilePath];
     if (host) {
       args.push('--host', host);
     }
 
     const result = await runCommand(args);
-    res.json(result);
+
+    // Add request file path to response
+    res.json({
+      ...result,
+      requestFilePath: requestFilePath,
+      requestFileName: requestFileName
+    });
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
   }
