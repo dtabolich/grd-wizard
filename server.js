@@ -156,21 +156,25 @@ app.post('/licenses/activate-offline', upload.single('license_file'), async (req
 /**
  * Process and submit activation response
  */
-app.post('/licenses/activate-response', upload.fields([
-  { name: 'request_file', maxCount: 1 },
-  { name: 'license_file', maxCount: 1 }
-]), async (req, res) => {
+app.post('/licenses/activate-response', upload.single('request_file'), async (req, res) => {
   try {
     const { serial_number } = req.body;
 
-    if (!serial_number || !req.files['request_file'] || !req.files['license_file']) {
+    if (!serial_number || !req.file) {
       return res.status(400).json({
-        error: 'serial_number, request_file, and license_file are required'
+        error: 'serial_number and request_file are required'
       });
     }
 
-    const requestFilePath = req.files['request_file'][0].path;
-    const licenseFilePath = req.files['license_file'][0].path;
+    const requestFilePath = req.file.path;
+    const originalName = req.file.originalname;
+
+    // Generate license file path by replacing .request with .license
+    const licenseFileName = originalName.replace(/\.request$/i, '.license');
+    const licenseFilePath = path.join(path.dirname(requestFilePath), licenseFileName);
+
+    console.log('Request file:', requestFilePath);
+    console.log('Generated license file path:', licenseFilePath);
 
     const result = await runCommand([
       '--activate-response',
@@ -179,19 +183,13 @@ app.post('/licenses/activate-response', upload.fields([
       licenseFilePath
     ]);
 
-    // Cleanup uploaded files
+    // Cleanup uploaded file
     await fs.unlink(requestFilePath).catch(() => {});
-    await fs.unlink(licenseFilePath).catch(() => {});
 
     res.json(result);
   } catch (error) {
-    if (req.files) {
-      if (req.files['request_file']) {
-        await fs.unlink(req.files['request_file'][0].path).catch(() => {});
-      }
-      if (req.files['license_file']) {
-        await fs.unlink(req.files['license_file'][0].path).catch(() => {});
-      }
+    if (req.file) {
+      await fs.unlink(req.file.path).catch(() => {});
     }
     res.status(error.status || 500).json({ error: error.message });
   }

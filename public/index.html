@@ -252,13 +252,10 @@
                     <input type="text" id="activateResponseSerial" placeholder="Enter serial number">
                 </div>
                 <div class="form-group">
-                    <label>Request File:</label>
-                    <input type="file" id="activateResponseReqFile">
+                    <label>Request File (.request):</label>
+                    <input type="file" id="activateResponseReqFile" accept=".request">
                 </div>
-                <div class="form-group">
-                    <label>License File:</label>
-                    <input type="file" id="activateResponseLicFile">
-                </div>
+                <p style="color: #666; font-size: 14px; margin-top: -10px;">License file will be generated automatically by replacing .request with .license</p>
                 <button onclick="activateResponse()">Submit Activation Response</button>
                 <div id="activateResponseResult" class="result"></div>
             </div>
@@ -440,10 +437,9 @@
             const button = event.target;
             const serial = document.getElementById('activateResponseSerial').value;
             const reqFile = document.getElementById('activateResponseReqFile').files[0];
-            const licFile = document.getElementById('activateResponseLicFile').files[0];
 
-            if (!serial || !reqFile || !licFile) {
-                alert('Please fill in all fields');
+            if (!serial || !reqFile) {
+                alert('Please enter serial number and select request file');
                 return;
             }
 
@@ -454,7 +450,6 @@
                 const formData = new FormData();
                 formData.append('serial_number', serial);
                 formData.append('request_file', reqFile);
-                formData.append('license_file', licFile);
 
                 const response = await fetch('/licenses/activate-response', {
                     method: 'POST',
