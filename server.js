@@ -23,10 +23,13 @@ app.use(express.static('public'));
  */
 function runCommand(args) {
   return new Promise((resolve, reject) => {
-    console.log('Executing command:', LICENSE_WIZARD_PATH, ['--console', ...args]);
-    console.log('File exists check - Path:', LICENSE_WIZARD_PATH);
+    // For Windows paths with spaces, we need to wrap the path in quotes when using shell
+    const quotedPath = LICENSE_WIZARD_PATH.includes(' ') ? `"${LICENSE_WIZARD_PATH}"` : LICENSE_WIZARD_PATH;
+    const cmdArgs = ['--console', ...args];
 
-    const child = spawn(LICENSE_WIZARD_PATH, ['--console', ...args], {
+    console.log('Executing command:', quotedPath, cmdArgs);
+
+    const child = spawn(quotedPath, cmdArgs, {
       encoding: 'utf8',
       windowsHide: false,
       shell: true
