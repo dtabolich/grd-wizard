@@ -332,13 +332,16 @@
             let details = '';
 
             if (typeof data === 'object') {
-                const stdout = data.stdout ? data.stdout.trim() : '';
-                const stderr = data.stderr ? data.stderr.trim() : '';
+                // Debug: log the data to console
+                console.log('Response data:', data);
 
-                if (stdout || stderr) {
+                const stdout = data.stdout || '';
+                const stderr = data.stderr || '';
+
+                if (stdout.trim() || stderr.trim()) {
                     details = '\n\n';
-                    if (stdout) details += `Output:\n${stdout}\n`;
-                    if (stderr) details += `${stdout ? '\n' : ''}Errors:\n${stderr}`;
+                    if (stdout.trim()) details += `Output:\n${stdout}`;
+                    if (stderr.trim()) details += `${stdout.trim() ? '\n\n' : ''}Errors:\n${stderr}`;
                 } else {
                     details = '\n\nCommand executed successfully (no output)';
                 }
