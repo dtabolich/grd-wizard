@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { exec } = require('child_process');
 const multer = require('multer');
