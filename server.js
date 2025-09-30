@@ -7,7 +7,18 @@ const fs = require('fs').promises;
 const os = require('os');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+
+// Configure multer to preserve original filenames
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    // Use original filename
+    cb(null, file.originalname);
+  }
+});
+const upload = multer({ storage: storage });
 
 // Configuration - adjust this path based on your system
 const LICENSE_WIZARD_PATH = process.env.LICENSE_WIZARD_PATH ||
@@ -169,12 +180,13 @@ app.post('/licenses/activate-response', upload.single('request_file'), async (re
       });
     }
 
-    const requestFilePath = req.file.path;
+    // Get absolute paths
+    const requestFilePath = path.resolve(req.file.path);
     const originalName = req.file.originalname;
 
     // Generate license file path by replacing .request with .license
     const licenseFileName = originalName.replace(/\.request$/i, '.license');
-    const licenseFilePath = path.join(path.dirname(requestFilePath), licenseFileName);
+    const licenseFilePath = path.resolve(path.join(path.dirname(requestFilePath), licenseFileName));
 
     const result = await runCommand([
       '--activate-response',
