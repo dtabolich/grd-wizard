@@ -188,12 +188,19 @@ app.post('/licenses/activate-response', upload.single('request_file'), async (re
     const licenseFileName = originalName.replace(/\.request$/i, '.license');
     const licenseFilePath = path.resolve(path.join(path.dirname(requestFilePath), licenseFileName));
 
-    const result = await runCommand([
+    const args = [
       '--activate-response',
       serial_number,
       requestFilePath,
       licenseFilePath
-    ]);
+    ];
+
+    // Add host parameter from env if configured
+    if (process.env.HOST) {
+      args.push('--host', process.env.HOST);
+    }
+
+    const result = await runCommand(args);
 
     // Cleanup uploaded file
     await fs.unlink(requestFilePath).catch(() => {});
