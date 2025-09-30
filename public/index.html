@@ -133,12 +133,15 @@
 
         .result pre {
             margin-top: 10px;
-            padding: 10px;
-            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            background: #1e1e1e;
+            color: #d4d4d4;
             border-radius: 3px;
             overflow-x: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            white-space: pre;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         .loader {
@@ -329,7 +332,7 @@
             element.className = `result ${success ? 'success' : 'error'}`;
 
             let message = success ? '✓ Success' : '✗ Error';
-            let details = '';
+            let output = '';
 
             if (typeof data === 'object') {
                 // Debug: log the data to console
@@ -339,17 +342,22 @@
                 const stderr = data.stderr || '';
 
                 if (stdout.trim() || stderr.trim()) {
-                    details = '\n\n';
-                    if (stdout.trim()) details += `Output:\n${stdout}`;
-                    if (stderr.trim()) details += `${stdout.trim() ? '\n\n' : ''}Errors:\n${stderr}`;
+                    // Show stdout directly as terminal output
+                    output = stdout || stderr;
                 } else {
-                    details = '\n\nCommand executed successfully (no output)';
+                    output = 'Command executed successfully (no output)';
                 }
             } else {
-                details = `\n\n${data}`;
+                output = data;
             }
 
-            element.innerHTML = `<strong>${message}</strong><pre>${details}</pre>`;
+            // Escape HTML to prevent XSS but preserve formatting
+            const escapedOutput = output
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            element.innerHTML = `<strong>${message}</strong><pre>${escapedOutput}</pre>`;
         }
 
         async function listLicenses() {
