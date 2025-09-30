@@ -100,7 +100,14 @@ app.get('/licenses', async (req, res) => {
 app.post('/licenses/activate-request/:licenseId', async (req, res) => {
   try {
     const { licenseId } = req.params;
-    const result = await runCommand(['--activate-request', licenseId]);
+    const { host } = req.body;
+
+    const args = ['--activate-request', licenseId];
+    if (host) {
+      args.push('--host', host);
+    }
+
+    const result = await runCommand(args);
     res.json(result);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.message });
