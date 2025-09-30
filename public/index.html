@@ -350,7 +350,9 @@
                 if (data.licenseFilePath) {
                     extraInfo = `<div style="margin-top: 10px; padding: 10px; background: rgba(37, 99, 235, 0.1); border-radius: 5px;">
                         <strong>Generated License File:</strong><br>
-                        <code style="color: #2563eb;">${data.licenseFilePath}</code>
+                        <a href="file:///${data.licenseFilePath.replace(/\\/g, '/')}"
+                           style="color: #2563eb; text-decoration: underline; cursor: pointer;"
+                           title="Click to open file location">${data.licenseFilePath}</a>
                     </div>`;
                 }
 
@@ -358,7 +360,9 @@
                 if (data.requestFilePath) {
                     extraInfo = `<div style="margin-top: 10px; padding: 10px; background: rgba(37, 99, 235, 0.1); border-radius: 5px;">
                         <strong>Generated Request File:</strong><br>
-                        <code style="color: #2563eb;">${data.requestFilePath}</code>
+                        <a href="file:///${data.requestFilePath.replace(/\\/g, '/')}"
+                           style="color: #2563eb; text-decoration: underline; cursor: pointer;"
+                           title="Click to open file location">${data.requestFilePath}</a>
                     </div>`;
                 }
             } else {
