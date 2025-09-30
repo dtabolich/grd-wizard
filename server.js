@@ -37,16 +37,31 @@ function runCommand(args) {
 
     let stdout = '';
     let stderr = '';
+    let dataReceived = false;
 
-    child.stdout.on('data', (data) => {
-      console.log('Received stdout chunk:', data.toString().length, 'bytes');
-      stdout += data.toString();
-    });
+    console.log('Child process spawned, PID:', child.pid);
+    console.log('Stdout exists:', !!child.stdout);
+    console.log('Stderr exists:', !!child.stderr);
 
-    child.stderr.on('data', (data) => {
-      console.log('Received stderr chunk:', data.toString().length, 'bytes');
-      stderr += data.toString();
-    });
+    if (child.stdout) {
+      child.stdout.setEncoding('utf8');
+      child.stdout.on('data', (data) => {
+        dataReceived = true;
+        console.log('Received stdout chunk:', data.length, 'bytes');
+        console.log('Stdout data:', JSON.stringify(data));
+        stdout += data;
+      });
+    }
+
+    if (child.stderr) {
+      child.stderr.setEncoding('utf8');
+      child.stderr.on('data', (data) => {
+        dataReceived = true;
+        console.log('Received stderr chunk:', data.length, 'bytes');
+        console.log('Stderr data:', JSON.stringify(data));
+        stderr += data;
+      });
+    }
 
     child.on('error', (error) => {
       console.log('Child process error:', error);
@@ -55,10 +70,11 @@ function runCommand(args) {
 
     child.on('close', (code) => {
       console.log('Command completed with code:', code);
+      console.log('Data received event fired:', dataReceived);
       console.log('Stdout length:', stdout.length);
       console.log('Stderr length:', stderr.length);
-      console.log('Stdout:', stdout);
-      console.log('Stderr:', stderr);
+      console.log('Stdout:', JSON.stringify(stdout));
+      console.log('Stderr:', JSON.stringify(stderr));
 
       resolve({
         success: code === 0,
