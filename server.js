@@ -25,11 +25,23 @@ function runCommand(args) {
   return new Promise((resolve, reject) => {
     const cmdLine = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')}`;
 
+    console.log('\n=== Executing License Wizard Command ===');
+    console.log('Command:', cmdLine);
+    console.log('Arguments:', args);
+    console.log('========================================\n');
+
     exec(cmdLine, {
       encoding: 'utf8',
       maxBuffer: 10 * 1024 * 1024,
       timeout: 30000
     }, (error, stdout, stderr) => {
+      console.log('=== Command Completed ===');
+      console.log('Exit Code:', error ? error.code : 0);
+      console.log('Success:', !error || error.code === 0);
+      if (stdout) console.log('Stdout:', stdout);
+      if (stderr) console.log('Stderr:', stderr);
+      console.log('=========================\n');
+
       if (error && error.killed) {
         reject({ status: 408, message: 'Command timeout' });
         return;
