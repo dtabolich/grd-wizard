@@ -25,7 +25,20 @@ function runCommand(args) {
   return new Promise((resolve, reject) => {
     const cmd = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')}`;
 
-    exec(cmd, { timeout: 30000 }, (error, stdout, stderr) => {
+    console.log('Executing command:', cmd);
+
+    exec(cmd, {
+      timeout: 30000,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024
+    }, (error, stdout, stderr) => {
+      console.log('Command completed');
+      console.log('Error:', error);
+      console.log('Stdout length:', stdout ? stdout.length : 0);
+      console.log('Stderr length:', stderr ? stderr.length : 0);
+      console.log('Stdout:', stdout);
+      console.log('Stderr:', stderr);
+
       if (error && error.killed) {
         reject({ status: 408, message: 'Command timeout' });
         return;
