@@ -21,37 +21,52 @@ app.use(express.static('public'));
 /**
  * Execute License Wizard command and return result
  */
-function runCommand(args) {
-  return new Promise((resolve, reject) => {
-    // Build command with proper quoting
-    const cmdLine = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')}`;
+async function runCommand(args) {
+  return new Promise(async (resolve, reject) => {
+    // Create temp file for output
+    const tempFile = path.join(os.tmpdir(), `license_wizard_${Date.now()}.txt`);
+
+    // Build command with output redirection
+    const cmdLine = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')} > "${tempFile}" 2>&1`;
 
     console.log('Executing command:', cmdLine);
+    console.log('Output file:', tempFile);
 
     exec(cmdLine, {
       encoding: 'utf8',
-      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+      maxBuffer: 10 * 1024 * 1024,
       timeout: 30000,
       windowsHide: false
-    }, (error, stdout, stderr) => {
+    }, async (error, stdout, stderr) => {
       console.log('Command completed');
       console.log('Error:', error);
-      console.log('Stdout length:', stdout ? stdout.length : 0);
-      console.log('Stderr length:', stderr ? stderr.length : 0);
-      console.log('Stdout sample (first 200 chars):', stdout ? stdout.substring(0, 200) : '(empty)');
-      console.log('Stderr sample (first 200 chars):', stderr ? stderr.substring(0, 200) : '(empty)');
 
-      if (error && error.killed) {
-        reject({ status: 408, message: 'Command timeout' });
-        return;
+      try {
+        // Read the output from the temp file
+        const output = await fs.readFile(tempFile, 'utf8');
+        console.log('File output length:', output.length);
+        console.log('File output sample (first 200 chars):', output.substring(0, 200));
+
+        // Clean up temp file
+        await fs.unlink(tempFile).catch(() => {});
+
+        resolve({
+          success: !error || error.code === 0,
+          returncode: error ? error.code : 0,
+          stdout: output,
+          stderr: stderr || ''
+        });
+      } catch (readError) {
+        console.log('Error reading temp file:', readError);
+
+        // Fallback to original stdout/stderr
+        resolve({
+          success: !error || error.code === 0,
+          returncode: error ? error.code : 0,
+          stdout: stdout || '',
+          stderr: stderr || ''
+        });
       }
-
-      resolve({
-        success: !error || error.code === 0,
-        returncode: error ? error.code : 0,
-        stdout: stdout || '',
-        stderr: stderr || ''
-      });
     });
   });
 }
