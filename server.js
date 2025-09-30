@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
@@ -23,34 +23,51 @@ app.use(express.static('public'));
  */
 function runCommand(args) {
   return new Promise((resolve, reject) => {
-    const cmd = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')}`;
+    console.log('Executing command:', LICENSE_WIZARD_PATH, ['--console', ...args]);
 
-    console.log('Executing command:', cmd);
-
-    exec(cmd, {
-      timeout: 30000,
+    const child = spawn(LICENSE_WIZARD_PATH, ['--console', ...args], {
       encoding: 'utf8',
-      maxBuffer: 1024 * 1024
-    }, (error, stdout, stderr) => {
-      console.log('Command completed');
-      console.log('Error:', error);
-      console.log('Stdout length:', stdout ? stdout.length : 0);
-      console.log('Stderr length:', stderr ? stderr.length : 0);
+      windowsHide: false
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data) => {
+      console.log('Received stdout chunk:', data.toString().length, 'bytes');
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data) => {
+      console.log('Received stderr chunk:', data.toString().length, 'bytes');
+      stderr += data.toString();
+    });
+
+    child.on('error', (error) => {
+      console.log('Child process error:', error);
+      reject({ status: 500, message: error.message });
+    });
+
+    child.on('close', (code) => {
+      console.log('Command completed with code:', code);
+      console.log('Stdout length:', stdout.length);
+      console.log('Stderr length:', stderr.length);
       console.log('Stdout:', stdout);
       console.log('Stderr:', stderr);
 
-      if (error && error.killed) {
-        reject({ status: 408, message: 'Command timeout' });
-        return;
-      }
-
       resolve({
-        success: !error || error.code === 0,
-        returncode: error ? error.code : 0,
+        success: code === 0,
+        returncode: code,
         stdout: stdout,
         stderr: stderr
       });
     });
+
+    // Set timeout
+    setTimeout(() => {
+      child.kill();
+      reject({ status: 408, message: 'Command timeout' });
+    }, 30000);
   });
 }
 
