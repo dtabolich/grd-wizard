@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardant License Wizard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: block;
+            max-width: 200px;
+            height: auto;
+            margin: 0 auto 20px;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        button {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result pre {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 3px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab.active {
+            background: white;
+            font-weight: bold;
+            color: #2563eb;
+            text-shadow: none;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="logo.svg" alt="Logo" class="logo">
+        <h1>🔐 Guardant License Wizard</h1>
+
+        <div class="card">
+            <h2>List Licenses</h2>
+            <button onclick="listLicenses()">Get All Licenses</button>
+            <div id="listResult" class="result"></div>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('activate')">Activate</button>
+                <button class="tab" onclick="switchTab('update')">Update</button>
+                <button class="tab" onclick="switchTab('return')">Return</button>
+            </div>
+
+            <!-- Activate Tab -->
+            <div id="activate-tab" class="tab-content active">
+                <h2>License Activation</h2>
+
+                <h3 style="margin-top: 20px; color: #666;">Online Activation</h3>
+                <div class="form-group">
+                    <label>Serial Number:</label>
+                    <input type="text" id="activateSerial" placeholder="Enter serial number">
+                </div>
+                <div class="form-group">
+                    <label>Host (optional):</label>
+                    <input type="text" id="activateHost" placeholder="Enter host URL">
+                </div>
+                <button onclick="activateOnline()">Activate Online</button>
+                <div id="activateOnlineResult" class="result"></div>
+
+                <h3 style="margin-top: 30px; color: #666;">Offline Activation</h3>
+                <div class="form-group">
+                    <label>License File:</label>
+                    <input type="file" id="activateOfflineFile">
+                </div>
+                <button onclick="activateOffline()">Activate Offline</button>
+                <div id="activateOfflineResult" class="result"></div>
+
+                <h3 style="margin-top: 30px; color: #666;">Activation Response</h3>
+                <div class="form-group">
+                    <label>Serial Number:</label>
+                    <input type="text" id="activateResponseSerial" placeholder="Enter serial number">
+                </div>
+                <div class="form-group">
+                    <label>Request File:</label>
+                    <input type="file" id="activateResponseReqFile">
+                </div>
+                <div class="form-group">
+                    <label>License File:</label>
+                    <input type="file" id="activateResponseLicFile">
+                </div>
+                <button onclick="activateResponse()">Submit Activation Response</button>
+                <div id="activateResponseResult" class="result"></div>
+            </div>
+
+            <!-- Update Tab -->
+            <div id="update-tab" class="tab-content">
+                <h2>License Update</h2>
+
+                <h3 style="margin-top: 20px; color: #666;">Online Update</h3>
+                <div class="form-group">
+                    <label>License ID:</label>
+                    <input type="text" id="updateLicenseId" placeholder="Enter license ID">
+                </div>
+                <div class="form-group">
+                    <label>Host (optional):</label>
+                    <input type="text" id="updateHost" placeholder="Enter host URL">
+                </div>
+                <button onclick="updateOnline()">Update Online</button>
+                <div id="updateOnlineResult" class="result"></div>
+
+                <h3 style="margin-top: 30px; color: #666;">Update Response</h3>
+                <div class="form-group">
+                    <label>License File:</label>
+                    <input type="file" id="updateResponseFile">
+                </div>
+                <button onclick="updateResponse()">Submit Update Response</button>
+                <div id="updateResponseResult" class="result"></div>
+            </div>
+
+            <!-- Return Tab -->
+            <div id="return-tab" class="tab-content">
+                <h2>License Return</h2>
+
+                <h3 style="margin-top: 20px; color: #666;">Online Return</h3>
+                <div class="form-group">
+                    <label>License ID:</label>
+                    <input type="text" id="returnLicenseId" placeholder="Enter license ID">
+                </div>
+                <div class="form-group">
+                    <label>Host (optional):</label>
+                    <input type="text" id="returnHost" placeholder="Enter host URL">
+                </div>
+                <button onclick="returnOnline()">Return Online</button>
+                <div id="returnOnlineResult" class="result"></div>
+
+                <h3 style="margin-top: 30px; color: #666;">Return Response</h3>
+                <div class="form-group">
+                    <label>License File:</label>
+                    <input type="file" id="returnResponseFile">
+                </div>
+                <button onclick="returnResponse()">Submit Return Response</button>
+                <div id="returnResponseResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tab + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showResult(elementId, success, data) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${success ? 'success' : 'error'}`;
+
+            let message = success ? '✓ Success' : '✗ Error';
+            let details = '';
+
+            if (typeof data === 'object') {
+                details = `\n\nOutput:\n${data.stdout || ''}\n${data.stderr || ''}`;
+            } else {
+                details = `\n\n${data}`;
+            }
+
+            element.innerHTML = `<strong>${message}</strong><pre>${details}</pre>`;
+        }
+
+        async function listLicenses() {
+            const button = event.target;
+            button.disabled = true;
+            button.innerHTML = 'Loading... <span class="loader"></span>';
+
+            try {
+                const response = await fetch('/licenses');
+                const data = await response.json();
+                showResult('listResult', data.success, data);
+            } catch (error) {
+                showResult('listResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Get All Licenses';
+            }
+        }
+
+        async function activateOnline() {
+            const button = event.target;
+            const serial = document.getElementById('activateSerial').value;
+            const host = document.getElementById('activateHost').value;
+
+            if (!serial) {
+                alert('Please enter a serial number');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = 'Activating... <span class="loader"></span>';
+
+            try {
+                const response = await fetch('/licenses/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ serial_number: serial, host: host || undefined })
+                });
+                const data = await response.json();
+                showResult('activateOnlineResult', data.success, data);
+            } catch (error) {
+                showResult('activateOnlineResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Activate Online';
+            }
+        }
+
+        async function activateOffline() {
+            const button = event.target;
+            const fileInput = document.getElementById('activateOfflineFile');
+
+            if (!fileInput.files[0]) {
+                alert('Please select a license file');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = 'Activating... <span class="loader"></span>';
+
+            try {
+                const formData = new FormData();
+                formData.append('license_file', fileInput.files[0]);
+
+                const response = await fetch('/licenses/activate-offline', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult('activateOfflineResult', data.success, data);
+            } catch (error) {
+                showResult('activateOfflineResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Activate Offline';
+            }
+        }
+
+        async function activateResponse() {
+            const button = event.target;
+            const serial = document.getElementById('activateResponseSerial').value;
+            const reqFile = document.getElementById('activateResponseReqFile').files[0];
+            const licFile = document.getElementById('activateResponseLicFile').files[0];
+
+            if (!serial || !reqFile || !licFile) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = 'Submitting... <span class="loader"></span>';
+
+            try {
+                const formData = new FormData();
+                formData.append('serial_number', serial);
+                formData.append('request_file', reqFile);
+                formData.append('license_file', licFile);
+
+                const response = await fetch('/licenses/activate-response', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult('activateResponseResult', data.success, data);
+            } catch (error) {
+                showResult('activateResponseResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Submit Activation Response';
+            }
+        }
+
+        async function updateOnline() {
+            const button = event.target;
+            const licenseId = document.getElementById('updateLicenseId').value;
+            const host = document.getElementById('updateHost').value;
+
+            if (!licenseId) {
+                alert('Please enter a license ID');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = 'Updating... <span class="loader"></span>';
+
+            try {
+                const response = await fetch(`/licenses/${licenseId}/update`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ host: host || undefined })
+                });
+                const data = await response.json();
+                showResult('updateOnlineResult', data.success, data);
+            } catch (error) {
+                showResult('updateOnlineResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Update Online';
+            }
+        }
+
+        async function updateResponse() {
+            const button = event.target;
+            const fileInput = document.getElementById('updateResponseFile');
+
+            if (!fileInput.files[0]) {
+                alert('Please select a license file');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = 'Submitting... <span class="loader"></span>';
+
+            try {
+                const formData = new FormData();
+                formData.append('license_file', fileInput.files[0]);
+
+                const response = await fetch('/licenses/update-response', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult('updateResponseResult', data.success, data);
+            } catch (error) {
+                showResult('updateResponseResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Submit Update Response';
+            }
+        }
+
+        async function returnOnline() {
+            const button = event.target;
+            const licenseId = document.getElementById('returnLicenseId').value;
+            const host = document.getElementById('returnHost').value;
+
+            if (!licenseId) {
+                alert('Please enter a license ID');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = 'Returning... <span class="loader"></span>';
+
+            try {
+                const response = await fetch(`/licenses/${licenseId}/return`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ host: host || undefined })
+                });
+                const data = await response.json();
+                showResult('returnOnlineResult', data.success, data);
+            } catch (error) {
+                showResult('returnOnlineResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Return Online';
+            }
+        }
+
+        async function returnResponse() {
+            const button = event.target;
+            const fileInput = document.getElementById('returnResponseFile');
+
+            if (!fileInput.files[0]) {
+                alert('Please select a license file');
+                return;
+            }
+
+            button.disabled = true;
+            button.innerHTML = 'Submitting... <span class="loader"></span>';
+
+            try {
+                const formData = new FormData();
+                formData.append('license_file', fileInput.files[0]);
+
+                const response = await fetch('/licenses/return-response', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult('returnResponseResult', data.success, data);
+            } catch (error) {
+                showResult('returnResponseResult', false, error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = 'Submit Return Response';
+            }
+        }
+    </script>
+</body>
+</html>

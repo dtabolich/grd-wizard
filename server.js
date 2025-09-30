@@ -15,6 +15,7 @@ const LICENSE_WIZARD_PATH = process.env.LICENSE_WIZARD_PATH ||
     : '/opt/guardant/license_wizard');
 
 app.use(express.json());
+app.use(express.static('public'));
 
 /**
  * Execute License Wizard command and return result
