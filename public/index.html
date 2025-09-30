@@ -332,7 +332,16 @@
             let details = '';
 
             if (typeof data === 'object') {
-                details = `\n\nOutput:\n${data.stdout || ''}\n${data.stderr || ''}`;
+                const stdout = data.stdout ? data.stdout.trim() : '';
+                const stderr = data.stderr ? data.stderr.trim() : '';
+
+                if (stdout || stderr) {
+                    details = '\n\n';
+                    if (stdout) details += `Output:\n${stdout}\n`;
+                    if (stderr) details += `${stdout ? '\n' : ''}Errors:\n${stderr}`;
+                } else {
+                    details = '\n\nCommand executed successfully (no output)';
+                }
             } else {
                 details = `\n\n${data}`;
             }
