@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const { exec, spawn } = require('child_process');
+const { exec } = require('child_process');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
@@ -23,72 +23,36 @@ app.use(express.static('public'));
  */
 function runCommand(args) {
   return new Promise((resolve, reject) => {
-    // For Windows paths with spaces, we need to wrap the path in quotes when using shell
-    const quotedPath = LICENSE_WIZARD_PATH.includes(' ') ? `"${LICENSE_WIZARD_PATH}"` : LICENSE_WIZARD_PATH;
-    const cmdArgs = ['--console', ...args];
+    // Build command with proper quoting
+    const cmdLine = `"${LICENSE_WIZARD_PATH}" --console ${args.join(' ')}`;
 
-    console.log('Executing command:', quotedPath, cmdArgs);
+    console.log('Executing command:', cmdLine);
 
-    const child = spawn(quotedPath, cmdArgs, {
+    exec(cmdLine, {
       encoding: 'utf8',
-      windowsHide: false,
-      shell: true
-    });
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+      timeout: 30000,
+      windowsHide: false
+    }, (error, stdout, stderr) => {
+      console.log('Command completed');
+      console.log('Error:', error);
+      console.log('Stdout length:', stdout ? stdout.length : 0);
+      console.log('Stderr length:', stderr ? stderr.length : 0);
+      console.log('Stdout sample (first 200 chars):', stdout ? stdout.substring(0, 200) : '(empty)');
+      console.log('Stderr sample (first 200 chars):', stderr ? stderr.substring(0, 200) : '(empty)');
 
-    let stdout = '';
-    let stderr = '';
-    let dataReceived = false;
-
-    console.log('Child process spawned, PID:', child.pid);
-    console.log('Stdout exists:', !!child.stdout);
-    console.log('Stderr exists:', !!child.stderr);
-
-    if (child.stdout) {
-      child.stdout.setEncoding('utf8');
-      child.stdout.on('data', (data) => {
-        dataReceived = true;
-        console.log('Received stdout chunk:', data.length, 'bytes');
-        console.log('Stdout data:', JSON.stringify(data));
-        stdout += data;
-      });
-    }
-
-    if (child.stderr) {
-      child.stderr.setEncoding('utf8');
-      child.stderr.on('data', (data) => {
-        dataReceived = true;
-        console.log('Received stderr chunk:', data.length, 'bytes');
-        console.log('Stderr data:', JSON.stringify(data));
-        stderr += data;
-      });
-    }
-
-    child.on('error', (error) => {
-      console.log('Child process error:', error);
-      reject({ status: 500, message: error.message });
-    });
-
-    child.on('close', (code) => {
-      console.log('Command completed with code:', code);
-      console.log('Data received event fired:', dataReceived);
-      console.log('Stdout length:', stdout.length);
-      console.log('Stderr length:', stderr.length);
-      console.log('Stdout:', JSON.stringify(stdout));
-      console.log('Stderr:', JSON.stringify(stderr));
+      if (error && error.killed) {
+        reject({ status: 408, message: 'Command timeout' });
+        return;
+      }
 
       resolve({
-        success: code === 0,
-        returncode: code,
-        stdout: stdout,
-        stderr: stderr
+        success: !error || error.code === 0,
+        returncode: error ? error.code : 0,
+        stdout: stdout || '',
+        stderr: stderr || ''
       });
     });
-
-    // Set timeout
-    setTimeout(() => {
-      child.kill();
-      reject({ status: 408, message: 'Command timeout' });
-    }, 30000);
   });
 }
 
